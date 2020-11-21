@@ -1,3 +1,8 @@
+"
+This class contains tests
+
+To facilitate the import via Git the classes are gathered in the same package. It is advisable to place the tests in a separate class.
+"
 Class {
 	#name : #LinkTest,
 	#superclass : #TestCase,

@@ -41,10 +41,13 @@ Class {
 	#category : #'List-Sequenced-Util'
 }
 
-{ #category : #modi }
+{ #category : #inserting }
 LinkedListBis >> appendHead: anObject [ 
+	| link_tmp |
+	link_tmp := LinkBis withValue: anObject  withNext: (self getLinkHead).
 	" On peut réaliser une cascade"
-	self setLinkHead: (LinkBis withValue: anObject  withNext: (self getLinkHead)).
+	self isEmpty ifTrue: [ self setLinkTail: link_tmp ].
+	self setLinkHead: link_tmp.
 	self increaseNbOfLinks.
 ]
 
@@ -52,14 +55,46 @@ LinkedListBis >> appendHead: anObject [
 LinkedListBis >> appendTail: anObject [  
 	| link_tmp |
 	link_tmp := LinkBis withValue: anObject.
-	"On peut aussi le faire en cascade"
-	self getLinkTail setNext: link_tmp.
-	self setLinkTail: link_tmp.
+	self isEmpty 
+		ifTrue: [ headLink := link_tmp ]
+		ifFalse: [ tailLink setNext: link_tmp ].
+	tailLink := link_tmp.
 	self increaseNbOfLinks.
 ]
 
-{ #category : #accesing }
+{ #category : #modifying }
+LinkedListBis >> decreaseNbOfLinks [
+	numberOfLinks := numberOfLinks - 1.
+]
+
+{ #category : #private }
+LinkedListBis >> emptyCheck [
+	self isEmpty ifTrue: [self errorEmptyCollection]
+]
+
+{ #category : #private }
+LinkedListBis >> errorEmptyCollection [
+	"Signal a CollectionIsEmpty exception"
+	CollectionIsEmpty signalWith: self
+]
+
+{ #category : #private }
+LinkedListBis >> errorSizeMismatch [
+	"Signal a SizeMismatch exception"
+	SizeMismatch signal
+]
+
+{ #category : #accessing }
 LinkedListBis >> getLinkAt: anInteger [ 
+	| link_tmp |
+	self sizeMismatchCheck: anInteger.
+	link_tmp := self getLinkHead.
+	(anInteger - 1) timesRepeat: [ link_tmp := link_tmp next ].
+	^ link_tmp
+]
+
+{ #category : #accessing }
+LinkedListBis >> getLinkAtNoCheck: anInteger [ 
 	| link_tmp |
 	link_tmp := self getLinkHead.
 	(anInteger - 1) timesRepeat: [ link_tmp := link_tmp next ].
@@ -71,9 +106,25 @@ LinkedListBis >> getLinkHead [
 	^ headLink 
 ]
 
-{ #category : #accesing }
+{ #category : #accessing }
 LinkedListBis >> getLinkTail [
 	^ tailLink
+]
+
+{ #category : #accessing }
+LinkedListBis >> getValueAt: anInteger [ 
+	self sizeMismatchCheck: anInteger.
+	^ (self getLinkAt: anInteger ) value.
+]
+
+{ #category : #accessing }
+LinkedListBis >> getValueHead [
+	^ (self getLinkHead) value.
+]
+
+{ #category : #accessing }
+LinkedListBis >> getValueTail [
+	^ (self getLinkTail) value.
 ]
 
 { #category : #modifying }
@@ -84,16 +135,23 @@ LinkedListBis >> increaseNbOfLinks [
 { #category : #initialization }
 LinkedListBis >> initialize [ 
 	super initialize.
-	headLink := LinkBisNil new.
-	tailLink := LinkBisNil new.
+	"headLink := nil.
+	tailLink := nil."
 	numberOfLinks := 0.
 ]
 
 { #category : #inserting }
 LinkedListBis >> insert: anObject  at: anInteger [
-	" Possibilité de faire une cascade "
+	self sizeMismatchCheck: anInteger.
+	(anInteger = (self numberOfLinks + 1)) ifTrue: [ ^ self appendTail: anObject ].
+	(anInteger = 1) ifTrue: [ ^ self appendHead: anObject  ].
 	(self getLinkAt: (anInteger - 1)) setNext: (LinkBis withValue: anObject  withNext: (self getLinkAt: anInteger )).
 	self increaseNbOfLinks.
+]
+
+{ #category : #inserting }
+LinkedListBis >> isEmpty [
+	^ headLink isNil.
 ]
 
 { #category : #accessing }
@@ -101,7 +159,44 @@ LinkedListBis >> numberOfLinks [
 	^ numberOfLinks
 ]
 
-{ #category : #'change set' }
+{ #category : #removing }
+LinkedListBis >> removeAt: anInteger [ 
+	self emptyCheck.
+	self sizeMismatchCheck: anInteger.
+	(anInteger = self numberOfLinks) ifTrue: [ ^ self removeTail ].
+	(anInteger = 1) ifTrue: [ ^ self removeHead ].
+	(self getLinkAt: anInteger - 1) setNext: (self getLinkAt: anInteger + 1).
+	self decreaseNbOfLinks.
+]
+
+{ #category : #removing }
+LinkedListBis >> removeHead [
+	self emptyCheck.
+	(numberOfLinks = 0)
+		ifTrue: [ self reset ]
+		ifFalse: [ self setLinkHead: (self getLinkAtNoCheck: 2).].
+	self decreaseNbOfLinks.
+]
+
+{ #category : #removing }
+LinkedListBis >> removeTail [
+	| link_tmp |
+	self emptyCheck.
+	self decreaseNbOfLinks.
+	link_tmp := self getLinkAtNoCheck: (self numberOfLinks).
+	(numberOfLinks = 0)
+		ifTrue: [ self reset ]
+		ifFalse: [ self setLinkTail: link_tmp. link_tmp setNext: nil. ]
+]
+
+{ #category : #reseting }
+LinkedListBis >> reset [
+	self initialize.
+	tailLink := nil.
+	headLink := nil.
+]
+
+{ #category : #setting }
 LinkedListBis >> setLinkHead: aLinkBis [ 
 	headLink := aLinkBis 
 ]
@@ -109,4 +204,9 @@ LinkedListBis >> setLinkHead: aLinkBis [
 { #category : #setting }
 LinkedListBis >> setLinkTail: aLinkBis [
 	tailLink := aLinkBis 
+]
+
+{ #category : #private }
+LinkedListBis >> sizeMismatchCheck: anInteger [ 
+	(anInteger between: 1 and: (self numberOfLinks)) ifFalse: [self errorSizeMismatch]
 ]
