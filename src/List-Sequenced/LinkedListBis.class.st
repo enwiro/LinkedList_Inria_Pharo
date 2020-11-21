@@ -86,11 +86,8 @@ LinkedListBis >> errorSizeMismatch [
 
 { #category : #accessing }
 LinkedListBis >> getLinkAt: anInteger [ 
-	| link_tmp |
 	self sizeMismatchCheck: anInteger.
-	link_tmp := self getLinkHead.
-	(anInteger - 1) timesRepeat: [ link_tmp := link_tmp next ].
-	^ link_tmp
+	^ self getLinkAtNoCheck: anInteger.
 ]
 
 { #category : #accessing }
