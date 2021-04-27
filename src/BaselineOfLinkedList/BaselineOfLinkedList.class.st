@@ -6,7 +6,6 @@ Class {
 
 { #category : #baselines }
 BaselineOfLinkedList >> baseline: spec [
-    <baseline>
-    spec for: #common
-        do: [spec | spec package: 'List-Sequenced']
+	<baseline>
+	spec for: #common do: [ spec package: 'List-Sequenced' ]
 ]
